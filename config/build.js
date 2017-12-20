@@ -147,6 +147,9 @@ function build() {
 
   print(`====== BUILDING: Version ${VERSION} (${CURRENT_COMMIT})`);
 
+  const DOC_DIR = `${ROOT_DIR}/docs/js/@lokijs`;
+  run("mkdir", ["-p", DOC_DIR]);
+
   for (const PACKAGE of PACKAGES) {
 
     const SRC_DIR = `${ROOT_DIR}/packages/${PACKAGE}`;
@@ -186,7 +189,10 @@ function build() {
     run("rsync", ["-am", "--include=package.json", "--include=*/", "--exclude=*", `${SRC_DIR}/`, `${NPM_DIR}/`]);
 
     print(`======      [${PACKAGE}]: MINIFY     =====`);
-    run(UGLIFYJS, [`${OUT_DIR}/${FILENAME}`, "--output", `${OUT_DIR}/${FILENAME_MINIFIED}`]);
+    run(UGLIFYJS, [`${OUT_DIR}/${FILENAME}`, "-c", "--output", `${OUT_DIR}/${FILENAME_MINIFIED}`]);
+
+    // Copy minified to docs.
+    run("rsync", ["-a", `${OUT_DIR}/${FILENAME_MINIFIED}`, `${DOC_DIR}/${FILENAME_MINIFIED}`]);
 
     print(`======      [${PACKAGE}]: VERSIONING =====`);
     const data = fs.readFileSync(`${NPM_DIR}/package.json`);
